@@ -1,19 +1,10 @@
 #!/bin/bash
 
-# detecta qual rc usar
-if [ -n "$ZSH_VERSION" ]; then
-    RC_FILE="$HOME/.zshrc"
-elif [ -n "$BASH_VERSION" ]; then
-    RC_FILE="$HOME/.bashrc"
-else
-    if echo "$SHELL" | grep -q "zsh"; then
-        RC_FILE="$HOME/.zshrc"
-    else
-        RC_FILE="$HOME/.bashrc"
-    fi
-fi
+# arquivos de configuracao possiveis
+BASH_RC="$HOME/.bashrc"
+ZSH_RC="$HOME/.zshrc"
 
-echo ">> shell prank: $RC_FILE"
+echo ">> shell prank: aplicando em ~/.bashrc e ~/.zshrc"
 
 # cria removedor definitivo
 cat << 'REMOVER' > "$HOME/shell_prank_remover.sh"
@@ -21,11 +12,11 @@ cat << 'REMOVER' > "$HOME/shell_prank_remover.sh"
 
 # remove a prank tanto do zshrc quanto do bashrc
 if [ -f "$HOME/.zshrc" ]; then
-    sed -i '' '/SHELL PRANK BEGIN/,/SHELL PRANK END/d' "$HOME/.zshrc"
+    sed -i '' '/shell prank begin/,/shell prank end/d' "$HOME/.zshrc"
 fi
 
 if [ -f "$HOME/.bashrc" ]; then
-    sed -i '' '/SHELL PRANK BEGIN/,/SHELL PRANK END/d' "$HOME/.bashrc"
+    sed -i '' '/shell prank begin/,/shell prank end/d' "$HOME/.bashrc"
 fi
 
 echo ">> acabou a brincadeira, so reiniciar o terminal!"
@@ -34,32 +25,41 @@ REMOVER
 chmod +x "$HOME/shell_prank_remover.sh"
 echo ">> criado: ~/shell_prank_remover.sh"
 
-# adiciona a prank
-cat << 'EOF' >> "$RC_FILE"
+# bloco da prank
+PRANK_BLOCK='
 
 # ---------- shell prank begin ----------
 
-alias cat='echo "miau miau... achou que ia ver arquivo né?"'
-alias ls='echo "vai listar nada não"'
-alias cp='echo "copiar? melhor não"'
-alias sudo='echo "ah tá, você é importante agora?"'
-alias clear='echo "limpeza não autorizada"'
-alias cd='echo "você fica exatamente onde está"'
-alias grep='echo "procurar não vai resolver"'
-alias python='echo "python decidiu não trabalhar agora"'
-alias vim='echo "coragem abrir o vim assim do nada"'
-alias top='echo "deixa o sistema quieto aí"'
-alias history='echo "histórico indisponível no momento"'
-alias exit='echo "indo embora cedo assim?"'
+alias cat='\''echo "miau miau... achou que ia ver arquivo né?"'\'''
+alias ls='\''echo "vai listar nada não"'\'''
+alias cp='\''echo "copiar? melhor não"'\'''
+alias sudo='\''echo "ah tá, você é importante agora?"'\'''
+alias clear='\''echo "limpeza não autorizada"'\'''
+alias cd='\''echo "você fica exatamente onde está"'\'''
+alias grep='\''echo "procurar não vai resolver"'\'''
+alias python='\''echo "python decidiu não trabalhar agora"'\'''
+alias vim='\''echo "coragem abrir o vim assim do nada"'\'''
+alias top='\''echo "deixa o sistema quieto aí"'\'''
+alias history='\''echo "histórico indisponível no momento"'\'''
+alias exit='\''echo "indo embora cedo assim?"'\'''
 
-# ---------- shell prank end ----------
+# ---------- shell prank end ----------'
 
-EOF
+# adiciona a prank no bashrc
+echo "$PRANK_BLOCK" >> "$BASH_RC"
+
+# adiciona a prank no zshrc
+echo "$PRANK_BLOCK" >> "$ZSH_RC"
 
 echo ">> prank it is on"
 
-# reinicia o ambiente automaticamente
+# recarrega o ambiente atual
 echo ">> recarregando ambiente..."
-source "$RC_FILE"
-exec $SHELL
 
+if echo "$SHELL" | grep -q "zsh"; then
+    [ -f "$ZSH_RC" ] && . "$ZSH_RC"
+elif echo "$SHELL" | grep -q "bash"; then
+    [ -f "$BASH_RC" ] && . "$BASH_RC"
+fi
+
+exec "$SHELL"
